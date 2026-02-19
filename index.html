@@ -1,157 +1,64 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Apna PDF Pro</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-<style>
-body{
-margin:0;
-font-family:'Poppins',sans-serif;
-background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-color:white;
-text-align:center;
-}
-header{
-padding:25px;
-font-size:28px;
-font-weight:600;
-}
-.container{
-max-width:650px;
-margin:30px auto;
-background:white;
-color:black;
-padding:35px;
-border-radius:15px;
-box-shadow:0 20px 40px rgba(0,0,0,0.4);
-}
-.upload-box{
-border:2px dashed #2c5364;
-padding:35px;
-border-radius:12px;
-cursor:pointer;
-transition:0.3s;
-}
-.upload-box:hover{
-background:#f2f7ff;
-}
-.tools{
-margin-top:25px;
-}
-.tools button{
-padding:14px 22px;
-margin:10px;
-border:none;
-border-radius:8px;
-background:linear-gradient(45deg,#141e30,#243b55);
-color:white;
-font-size:14px;
-cursor:pointer;
-transition:0.3s;
-}
-.tools button:hover{
-transform:scale(1.05);
-}
-#fileName{
-margin-top:15px;
-font-weight:600;
-}
-#process{
-display:none;
-margin-top:15px;
-}
-.loader{
-border:4px solid #eee;
-border-top:4px solid #243b55;
-border-radius:50%;
-width:30px;
-height:30px;
-animation:spin 1s linear infinite;
-margin:10px auto;
-}
-@keyframes spin{
-100%{transform:rotate(360deg);}
-}
-#downloadBtn{
-display:none;
-margin-top:15px;
-padding:12px 20px;
-background:#0f2027;
-color:white;
-border:none;
-border-radius:8px;
-cursor:pointer;
-}
-footer{
-margin-top:40px;
-padding:20px;
-font-size:14px;
-opacity:0.8;
-}
-</style>
+  <title>APNA PDF PRO</title>
+  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: white;
+      padding: 40px;
+    }
+    .box {
+      background: white;
+      color: black;
+      padding: 30px;
+      border-radius: 15px;
+      width: 300px;
+      margin: auto;
+    }
+    button {
+      padding: 10px 20px;
+      margin-top: 15px;
+      border: none;
+      border-radius: 8px;
+      background: #203a43;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
 
-<header>💎 APNA PDF PRO</header>
+<h1>💎 APNA PDF PRO</h1>
 
-<div class="container">
-<div class="upload-box" onclick="document.getElementById('fileInput').click()">
-Click or Drag & Drop Your PDF Here
-<input type="file" id="fileInput" accept=".pdf" hidden>
+<div class="box">
+  <input type="file" id="pdfFiles" multiple accept="application/pdf"><br>
+  <button onclick="mergePDF()">Merge PDF</button>
 </div>
-
-<div id="fileName"></div>
-
-<div class="tools">
-<button onclick="startProcess('Convert')">Convert PDF</button>
-<button onclick="startProcess('Merge')">Merge PDF</button>
-<button onclick="startProcess('Split')">Split PDF</button>
-<button onclick="startProcess('Compress')">Compress PDF</button>
-</div>
-
-<div id="process">
-<div class="loader"></div>
-Processing Your File...
-</div>
-
-<button id="downloadBtn">Download Processed File</button>
-</div>
-
-<footer>
-© 2026 Apna PDF Pro | All Rights Reserved
-</footer>
 
 <script>
-let selectedFile = null;
+async function mergePDF() {
+  const { PDFDocument } = PDFLib;
+  const mergedPdf = await PDFDocument.create();
+  const files = document.getElementById('pdfFiles').files;
 
-document.getElementById("fileInput").addEventListener("change", function(e){
-selectedFile = e.target.files[0];
-if(selectedFile){
-document.getElementById("fileName").innerText = "Selected: " + selectedFile.name;
+  for (let i = 0; i < files.length; i++) {
+    const arrayBuffer = await files[i].arrayBuffer();
+    const pdf = await PDFDocument.load(arrayBuffer);
+    const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+    copiedPages.forEach((page) => mergedPdf.addPage(page));
+  }
+
+  const mergedPdfFile = await mergedPdf.save();
+  const blob = new Blob([mergedPdfFile], { type: 'application/pdf' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'merged.pdf';
+  link.click();
 }
-});
-
-function startProcess(type){
-if(!selectedFile){
-alert("Please upload a PDF first!");
-return;
-}
-
-document.getElementById("process").style.display="block";
-document.getElementById("downloadBtn").style.display="none";
-
-setTimeout(()=>{
-document.getElementById("process").style.display="none";
-document.getElementById("downloadBtn").style.display="inline-block";
-alert(type + " completed successfully (Demo Version)");
-},2000);
-}
-
-document.getElementById("downloadBtn").addEventListener("click",()=>{
-alert("Download started (Demo only)");
-});
 </script>
 
 </body>
