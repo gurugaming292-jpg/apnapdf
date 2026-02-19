@@ -35,28 +35,76 @@
 <h1>💎 APNA PDF PRO</h1>
 
 <div class="box">
-  <input type="file" id="pdfFiles" multiple accept="application/pdf"><br>
-  <button onclick="mergePDF()">Merge PDF</button>
+  <input type="file" id="pdfFile" accept="application/pdf"><br>
+  <button onclick="processPDF()">Add Watermark</button>
 </div>
 
 <script>
-async function mergePDF() {
-  const { PDFDocument } = PDFLib;
-  const mergedPdf = await PDFDocument.create();
-  const files = document.getElementById('pdfFiles').files;
+async function processPDF() {
+  const { PDFDocument, rgb, degrees, StandardFonts } = PDFLib;
+  const file = document.getElementById('pdfFile').files[0];
 
-  for (let i = 0; i < files.length; i++) {
-    const arrayBuffer = await files[i].arrayBuffer();
-    const pdf = await PDFDocument.load(arrayBuffer);
-    const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-    copiedPages.forEach((page) => mergedPdf.addPage(page));
+  if (!file) {
+    alert("Please select a PDF file.");
+    return;
   }
 
-  const mergedPdfFile = await mergedPdf.save();
-  const blob = new Blob([mergedPdfFile], { type: 'application/pdf' });
-  const link = document.createElement('a');
+  const telegramLink = "https://t.me/Premium_PDFSS";
+
+  const arrayBuffer = await file.arrayBuffer();
+  const pdfDoc = await PDFDocument.load(arrayBuffer);
+  const pages = pdfDoc.getPages();
+  const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+  pages.forEach(page => {
+    const { width, height } = page.getSize();
+
+    // Watermark
+    page.drawText("search on TG :-@Premium_PDFSS", {
+      x: width / 5,
+      y: height / 2,
+      size: 40,
+      font: font,
+      color: rgb(0.75, 0.75, 0.75),
+      rotate: degrees(45),
+      opacity: 0.25
+    });
+
+    // Full page clickable link
+    page.drawRectangle({
+      x: 0,
+      y: 0,
+      width: width,
+      height: height,
+      opacity: 0
+    });
+
+    page.doc.context.register(
+      page.node.set(
+        PDFLib.PDFName.of('Annots'),
+        pdfDoc.context.obj([
+          pdfDoc.context.obj({
+            Type: 'Annot',
+            Subtype: 'Link',
+            Rect: [0, 0, width, height],
+            Border: [0, 0, 0],
+            A: {
+              Type: 'Action',
+              S: 'URI',
+              URI: telegramLink
+            }
+          })
+        ])
+      )
+    );
+  });
+
+  const pdfBytes = await pdfDoc.save();
+
+  const blob = new Blob([pdfBytes], { type: "application/pdf" });
+  const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
-  link.download = 'merged.pdf';
+  link.download = file.name; // SAME NAME
   link.click();
 }
 </script>
