@@ -1,51 +1,10 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>APNA PDF PRO</title>
-  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
-  <style>
-    body {
-      font-family: Arial;
-      text-align: center;
-      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
-      color: white;
-      padding: 40px;
-    }
-    .box {
-      background: white;
-      color: black;
-      padding: 30px;
-      border-radius: 15px;
-      width: 300px;
-      margin: auto;
-    }
-    button {
-      padding: 10px 20px;
-      margin-top: 15px;
-      border: none;
-      border-radius: 8px;
-      background: #203a43;
-      color: white;
-      cursor: pointer;
-    }
-  </style>
-</head>
-<body>
-
-<h1>💎 APNA PDF PRO</h1>
-
-<div class="box">
-  <input type="file" id="pdfFile" accept="application/pdf"><br>
-  <button onclick="addWatermark()">Add Watermark</button>
-</div>
-
 <script>
 async function addWatermark() {
   const { PDFDocument, rgb, degrees, StandardFonts } = PDFLib;
-  const file = document.getElementById('pdfFile').files[0];
 
+  const file = document.getElementById('pdfFile').files[0];
   if (!file) {
-    alert("Please select a PDF file.");
+    alert("Please select a PDF file");
     return;
   }
 
@@ -57,15 +16,42 @@ async function addWatermark() {
   pages.forEach(page => {
     const { width, height } = page.getSize();
 
-    page.drawText("search on TG :-@Premium_PDFSS", {
+    // WATERMARK TEXT
+    page.drawText("search on TG :- @Premium_PDFSS", {
       x: width / 4,
       y: height / 2,
       size: 40,
       font: font,
-      color: rgb(0.75, 0.75, 0.75),
+      color: rgb(0.7, 0.7, 0.7),
       rotate: degrees(45),
-      opacity: 0.25
+      opacity: 0.25,
     });
+
+    // FULL PAGE CLICKABLE LINK
+    page.drawRectangle({
+      x: 0,
+      y: 0,
+      width: width,
+      height: height,
+      color: rgb(1,1,1),
+      opacity: 0,
+      borderWidth: 0,
+    });
+
+    page.node.set(PDFLib.PDFName.of('Annots'),
+      pdfDoc.context.obj([pdfDoc.context.obj({
+        Type: 'Annot',
+        Subtype: 'Link',
+        Rect: [0, 0, width, height],
+        Border: [0, 0, 0],
+        A: {
+          Type: 'Action',
+          S: 'URI',
+          URI: 'https://t.me/Premium_PDFSS'
+        }
+      })])
+    );
+
   });
 
   const pdfBytes = await pdfDoc.save();
@@ -81,6 +67,3 @@ async function addWatermark() {
   document.body.removeChild(a);
 }
 </script>
-
-</body>
-</html>
